@@ -1,0 +1,126 @@
+{
+  "version": "0.1.0",
+  "name": "flip_for_nft",
+  "instructions": [
+    {
+      "name": "initializeLottery",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lotteryOwner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ownerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ownerTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lottery",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lotteryTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "counter",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Lottery",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "creationDate",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LotteryOwner",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "count",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "WrongOwner",
+      "msg": "Wrong owner"
+    },
+    {
+      "code": 6001,
+      "name": "WrongAmount",
+      "msg": "Wrong amount"
+    },
+    {
+      "code": 6002,
+      "name": "MismatchingMint",
+      "msg": "Mint is not matching token account"
+    },
+    {
+      "code": 6003,
+      "name": "IncorrectSupply",
+      "msg": "Supply has to be 1"
+    },
+    {
+      "code": 6004,
+      "name": "IncorrectCounter",
+      "msg": "Incorrect Counter"
+    }
+  ],
+  "metadata": {
+    "address": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+  }
+}

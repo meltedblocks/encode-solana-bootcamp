@@ -15,11 +15,19 @@ describe("flip-for-nft", () => {
   it("Initialize Lottery", async () => {
     const LAMPORTS_PER_SOL = 1000000000;
     const owner = anchor.web3.Keypair.generate();
+    const player = anchor.web3.Keypair.generate();
     const mint_authority = anchor.web3.Keypair.generate();
 
     await provider.connection.confirmTransaction(
       await provider.connection.requestAirdrop(
         owner.publicKey,
+        20 * LAMPORTS_PER_SOL
+      )
+    );
+
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(
+        player.publicKey,
         20 * LAMPORTS_PER_SOL
       )
     );
@@ -30,12 +38,12 @@ describe("flip-for-nft", () => {
     );
 
     const [lottery] = await anchor.web3.PublicKey.findProgramAddress(
-      [utils.bytes.utf8.encode("lottery")],
+      [lotteryOwner.toBytes(), new anchor.BN(0).toArrayLike(Buffer, "le", 1), utils.bytes.utf8.encode("lottery")],
       program.programId
     );
 
-    const [lotteryTokenAccount] = await anchor.web3.PublicKey.findProgramAddress(
-      [utils.bytes.utf8.encode("lottery-token-account")],
+    const [lotteryTokenAccount, lotteryBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [lottery.toBytes(), utils.bytes.utf8.encode("lottery-token-account")],
       program.programId
     );
 
@@ -54,6 +62,13 @@ describe("flip-for-nft", () => {
       owner.publicKey,
     );
 
+    const playerTokenAccount= await createAssociatedTokenAccount(
+      provider.connection,
+      player,
+      ownerTokenMint,
+      player.publicKey,
+    );
+
     await mintTo(
       provider.connection,
       owner,
@@ -63,7 +78,7 @@ describe("flip-for-nft", () => {
       1,
     );
 
-    await program.methods.initializeLottery(new anchor.BN(0), new anchor.BN(100))
+    await program.methods.initializeLottery(new anchor.BN(0), new anchor.BN(100), new anchor.BN(0))
     .accounts({
       owner: owner.publicKey,
       lotteryOwner,
@@ -77,14 +92,45 @@ describe("flip-for-nft", () => {
     })
     .signers([owner])
     .rpc();
-    let lotteryTokenAccountState = await getAccount(provider.connection, lotteryTokenAccount);
+    let lotteryTokenAccountState = await await getAccount(provider.connection, lotteryTokenAccount);
     let ownerTokenAccountState = await getAccount(provider.connection, ownerTokenAccount);
+    let preBalanaceOwner = await provider.connection.getBalance(
+      owner.publicKey
+    );
     let lotteryState = await program.account.lottery.fetch(lottery);
     let lotteryOwnerState = await program.account.lotteryOwner.fetch(lotteryOwner);
     expect(ownerTokenAccountState.amount.toString()).equal("0");
     expect(lotteryTokenAccountState.amount.toString()).equal("1");
     expect(lotteryState.amount.toNumber()).equal(100);
+    expect(lotteryState.isWinner).equal(false);
     expect(lotteryState.creationDate.toNumber()).lessThanOrEqual(Date.now());
     expect(lotteryOwnerState.count).equal(1);
+
+    await program.methods.playLottery(lotteryBump)
+    .accounts({
+      player: player.publicKey,
+      owner: owner.publicKey,
+      lottery,
+      lotteryTokenAccount,
+      ownerTokenMint,
+      playerTokenAccount,
+      rent: SYSVAR_RENT_PUBKEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    })
+    .signers([player])
+    .rpc();
+    let lotteryStateAfterPlay = await program.account.lottery.fetch(lottery);
+    let postBalanaceOwner = await provider.connection.getBalance(
+      owner.publicKey
+    );
+    let playerTokenAccountState = await await getAccount(provider.connection, playerTokenAccount);
+    if (lotteryStateAfterPlay.isWinner) {
+      expect(playerTokenAccountState.amount.toString()).equal("1");
+    } else {
+      let balanceDiff = postBalanaceOwner - preBalanaceOwner;
+      expect(balanceDiff).equal(100);
+    }
   });
+
 });

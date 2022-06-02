@@ -11,12 +11,13 @@ describe("flip-for-nft", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.FlipForNft as Program<FlipForNft>;
-
-  it("Initialize Lottery", async () => {
-    const LAMPORTS_PER_SOL = 1000000000;
+  let testEnv: any = {};
+  
+  before(async () => {
+		const LAMPORTS_PER_SOL = 1000000000;
     const owner = anchor.web3.Keypair.generate();
     const player = anchor.web3.Keypair.generate();
-    const mint_authority = anchor.web3.Keypair.generate();
+    const mintAuthority = anchor.web3.Keypair.generate();
 
     await provider.connection.confirmTransaction(
       await provider.connection.requestAirdrop(
@@ -50,7 +51,7 @@ describe("flip-for-nft", () => {
     let ownerTokenMint = await createMint(
       provider.connection,
       owner,
-      mint_authority.publicKey,
+      mintAuthority.publicKey,
       null,
       0
     );
@@ -74,10 +75,16 @@ describe("flip-for-nft", () => {
       owner,
       ownerTokenMint,
       ownerTokenAccount,
-      mint_authority,
+      mintAuthority,
       1,
     );
 
+    testEnv = {owner, lotteryOwner, lottery, ownerTokenMint, lotteryTokenAccount, ownerTokenAccount, playerTokenAccount, player, lotteryBump};
+
+	});
+
+  it("Initialize Lottery", async () => {
+    let {owner, lotteryOwner, lottery, ownerTokenMint, lotteryTokenAccount, ownerTokenAccount} =  testEnv;
     await program.methods.initializeLottery(new anchor.BN(0), new anchor.BN(100), new anchor.BN(0))
     .accounts({
       owner: owner.publicKey,
@@ -94,9 +101,6 @@ describe("flip-for-nft", () => {
     .rpc();
     let lotteryTokenAccountState = await await getAccount(provider.connection, lotteryTokenAccount);
     let ownerTokenAccountState = await getAccount(provider.connection, ownerTokenAccount);
-    let preBalanaceOwner = await provider.connection.getBalance(
-      owner.publicKey
-    );
     let lotteryState = await program.account.lottery.fetch(lottery);
     let lotteryOwnerState = await program.account.lotteryOwner.fetch(lotteryOwner);
     expect(ownerTokenAccountState.amount.toString()).equal("0");
@@ -105,7 +109,12 @@ describe("flip-for-nft", () => {
     expect(lotteryState.isWinner).equal(false);
     expect(lotteryState.creationDate.toNumber()).lessThanOrEqual(Date.now());
     expect(lotteryOwnerState.count).equal(1);
-
+  });
+  it("Play Lottery", async () => {
+    let {owner, lottery, ownerTokenMint, lotteryTokenAccount, playerTokenAccount, player, lotteryBump} =  testEnv;
+    let preBalanaceOwner = await provider.connection.getBalance(
+      owner.publicKey
+    );
     await program.methods.playLottery(lotteryBump)
     .accounts({
       player: player.publicKey,

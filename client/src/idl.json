@@ -1,0 +1,273 @@
+{
+    "version": "0.1.0",
+    "name": "flip_for_nft",
+    "instructions": [
+      {
+        "name": "initializeLottery",
+        "accounts": [
+          {
+            "name": "owner",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "lotteryOwner",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "ownerTokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "ownerTokenMint",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "lottery",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "lotteryTokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "rent",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "tokenProgram",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "bet",
+            "type": "u8"
+          }
+        ]
+      },
+      {
+        "name": "playLottery",
+        "accounts": [
+          {
+            "name": "player",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "owner",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "lottery",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "lotteryTokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "ownerTokenMint",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "playerTokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "associatedTokenProgram",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "rent",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "tokenProgram",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      },
+      {
+        "name": "withdrawLottery",
+        "accounts": [
+          {
+            "name": "owner",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "ownerTokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "lottery",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "lotteryTokenAccount",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "tokenProgram",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    ],
+    "accounts": [
+      {
+        "name": "Lottery",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "u64"
+            },
+            {
+              "name": "amountWon",
+              "type": "u64"
+            },
+            {
+              "name": "creationDate",
+              "type": "i64"
+            },
+            {
+              "name": "bet",
+              "type": "u8"
+            },
+            {
+              "name": "mint",
+              "type": "publicKey"
+            },
+            {
+              "name": "owner",
+              "type": "publicKey"
+            },
+            {
+              "name": "isWinner",
+              "type": "bool"
+            }
+          ]
+        }
+      },
+      {
+        "name": "LotteryOwner",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "count",
+              "type": "u8"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [
+      {
+        "code": 6000,
+        "name": "WrongOwner",
+        "msg": "Wrong owner"
+      },
+      {
+        "code": 6001,
+        "name": "WrongAmount",
+        "msg": "Wrong amount"
+      },
+      {
+        "code": 6002,
+        "name": "MismatchingMint",
+        "msg": "Mint is not matching token account"
+      },
+      {
+        "code": 6003,
+        "name": "IncorrectSupply",
+        "msg": "Supply has to be 1"
+      },
+      {
+        "code": 6004,
+        "name": "IncorrectCounter",
+        "msg": "Incorrect Counter"
+      },
+      {
+        "code": 6005,
+        "name": "WinnerAlready",
+        "msg": "Lottery is already won"
+      },
+      {
+        "code": 6006,
+        "name": "IncorrectMint",
+        "msg": "Incorrect mint"
+      },
+      {
+        "code": 6007,
+        "name": "IncorrectBet",
+        "msg": "Incorrect bet"
+      },
+      {
+        "code": 6008,
+        "name": "Lose",
+        "msg": "Lose"
+      },
+      {
+        "code": 6009,
+        "name": "IncorrectOwner",
+        "msg": "Incorrect owner"
+      }
+    ],
+    "metadata": {
+      "address": "ETfjkW6wW54zjVwtXvdivXehgJMKMS8CTan8PcFnvsXa"
+    }
+  }

@@ -16,7 +16,7 @@ use crate::errors::LotteryError;
 use crate::states::{Lottery, LotteryOwner};
 use crate::util::do_lottery;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("ETfjkW6wW54zjVwtXvdivXehgJMKMS8CTan8PcFnvsXa");
 
 #[program]
 pub mod flip_for_nft {

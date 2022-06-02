@@ -1,14 +1,14 @@
 [features]
 seeds = false
 [programs.localnet]
-flip_for_nft = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+flip_for_nft = "ETfjkW6wW54zjVwtXvdivXehgJMKMS8CTan8PcFnvsXa"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "/root/.config/solana/id.json"
+wallet = "~/my-solana-wallet/my-keypair.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

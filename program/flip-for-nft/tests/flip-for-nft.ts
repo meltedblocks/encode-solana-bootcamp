@@ -85,7 +85,7 @@ describe("flip-for-nft", () => {
 
   it("Initialize Lottery", async () => {
     let {owner, lotteryOwner, lottery, ownerTokenMint, lotteryTokenAccount, ownerTokenAccount} =  testEnv;
-    await program.methods.initializeLottery(new anchor.BN(0), new anchor.BN(100), new anchor.BN(0))
+    await program.methods.initializeLottery(new anchor.BN(100), new anchor.BN(0))
     .accounts({
       owner: owner.publicKey,
       lotteryOwner,
@@ -110,6 +110,62 @@ describe("flip-for-nft", () => {
     expect(lotteryState.creationDate.toNumber()).lessThanOrEqual(Date.now());
     expect(lotteryOwnerState.count).equal(1);
   });
+
+  it("Withdraw Lottery", async () => {
+    let {owner, lotteryOwner, lottery, ownerTokenMint, lotteryTokenAccount, ownerTokenAccount, lotteryBump} =  testEnv;
+    await program.methods.withdrawLottery(lotteryBump)
+    .accounts({
+      owner: owner.publicKey,
+      ownerTokenAccount,
+      lottery,
+      lotteryTokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .signers([owner])
+    .rpc();
+    let lotteryTokenAccountState = await await getAccount(provider.connection, lotteryTokenAccount);
+    let ownerTokenAccountState = await getAccount(provider.connection, ownerTokenAccount);
+    expect(ownerTokenAccountState.amount.toString()).equal("1");
+    expect(lotteryTokenAccountState.amount.toString()).equal("0");
+  });
+
+  it("Re-Initialize Lottery after withdraw", async () => {
+    let {owner, lotteryOwner, lottery, ownerTokenMint, lotteryTokenAccount, ownerTokenAccount, lotteryBump} =  testEnv;
+    [lottery] = await anchor.web3.PublicKey.findProgramAddress(
+      [lotteryOwner.toBytes(), new anchor.BN(1).toArrayLike(Buffer, "le", 1), utils.bytes.utf8.encode("lottery")],
+      program.programId
+    );
+    [lotteryTokenAccount, lotteryBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [lottery.toBytes(), utils.bytes.utf8.encode("lottery-token-account")],
+      program.programId
+    );
+    await program.methods.initializeLottery(new anchor.BN(100), new anchor.BN(0))
+    .accounts({
+      owner: owner.publicKey,
+      lotteryOwner,
+      ownerTokenAccount,
+      ownerTokenMint,
+      lottery,
+      lotteryTokenAccount,
+      rent: SYSVAR_RENT_PUBKEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    })
+    .signers([owner])
+    .rpc();
+    let lotteryTokenAccountState = await await getAccount(provider.connection, lotteryTokenAccount);
+    let ownerTokenAccountState = await getAccount(provider.connection, ownerTokenAccount);
+    let lotteryState = await program.account.lottery.fetch(lottery);
+    let lotteryOwnerState = await program.account.lotteryOwner.fetch(lotteryOwner);
+    expect(ownerTokenAccountState.amount.toString()).equal("0");
+    expect(lotteryTokenAccountState.amount.toString()).equal("1");
+    expect(lotteryState.amount.toNumber()).equal(100);
+    expect(lotteryState.isWinner).equal(false);
+    expect(lotteryState.creationDate.toNumber()).lessThanOrEqual(Date.now());
+    expect(lotteryOwnerState.count).equal(2);
+    testEnv = {...testEnv, lottery, lotteryTokenAccount};
+  });
+
   it("Play Lottery", async () => {
     let {owner, lottery, ownerTokenMint, lotteryTokenAccount, playerTokenAccount, player, lotteryBump} =  testEnv;
     let preBalanaceOwner = await provider.connection.getBalance(

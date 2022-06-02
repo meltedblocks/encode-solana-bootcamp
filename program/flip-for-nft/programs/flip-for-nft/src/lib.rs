@@ -1,4 +1,4 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, AccountsClose};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Transfer;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -22,12 +22,7 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod flip_for_nft {
     use super::*;
 
-    pub fn initialize_lottery(
-        ctx: Context<Initialize>,
-        _counter: u8,
-        amount: u64,
-        bet: u8,
-    ) -> Result<()> {
+    pub fn initialize_lottery(ctx: Context<Initialize>, amount: u64, bet: u8) -> Result<()> {
         if bet != 0 && bet != 1 {
             return Err(LotteryError::IncorrectBet.into());
         }
@@ -107,15 +102,42 @@ pub mod flip_for_nft {
         Ok(())
     }
 
+    pub fn withdraw_lottery(ctx: Context<Withdraw>, bump: u8) -> Result<()> {
+        let transfer_instruction = Transfer {
+            from: ctx.accounts.lottery_token_account.to_account_info(),
+            to: ctx.accounts.owner_token_account.to_account_info(),
+            authority: ctx.accounts.lottery_token_account.to_account_info(),
+        };
+        let lottery_key = ctx.accounts.lottery.key();
+        let seeds = &[
+            lottery_key.as_ref(),
+            LOTTERY_TOKEN_ACCOUNT_SEED.as_bytes(),
+            &[bump],
+        ];
+        anchor_spl::token::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                transfer_instruction,
+                &[seeds],
+            ),
+            1,
+        )
+        .unwrap();
+
+        ctx.accounts
+            .lottery
+            .close(ctx.accounts.owner.to_account_info())?;
+
+        Ok(())
+    }
+
     #[derive(Accounts)]
-    #[instruction(counter: u8)]
     pub struct Initialize<'info> {
         #[account(mut)]
         pub owner: Signer<'info>,
         #[account(
         init_if_needed,
         seeds = [owner.key().as_ref(), LOTTERY_OWNER_ACCOUNT_SEED.as_bytes()],
-        constraint = lottery_owner.count == counter @ LotteryError::IncorrectCounter,
         bump,
         payer = owner,
         space = 2 * size_of::<LotteryOwner>() + 8,
@@ -134,7 +156,7 @@ pub mod flip_for_nft {
         pub owner_token_mint: Box<Account<'info, Mint>>,
         #[account(
         init,
-        seeds = [lottery_owner.key().as_ref(), counter.to_le_bytes().as_ref(), LOTTERY_ACCOUNT_SEED.as_bytes()],
+        seeds = [lottery_owner.key().as_ref(), lottery_owner.count.to_le_bytes().as_ref(), LOTTERY_ACCOUNT_SEED.as_bytes()],
         bump,
         payer = owner,
         space = 2 * size_of::<Lottery>() + 8,
@@ -187,6 +209,33 @@ pub mod flip_for_nft {
         pub player_token_account: Box<Account<'info, TokenAccount>>,
         pub associated_token_program: Program<'info, AssociatedToken>,
         pub rent: Sysvar<'info, Rent>,
+        pub token_program: Program<'info, Token>,
+        pub system_program: Program<'info, System>,
+    }
+
+    #[derive(Accounts)]
+    #[instruction(counter: u8)]
+    pub struct Withdraw<'info> {
+        #[account(mut,
+            constraint = owner.key() == lottery.owner @ LotteryError::IncorrectOwner
+        )]
+        pub owner: Signer<'info>,
+        #[account(
+        mut,
+        constraint = owner_token_account.owner == owner.key() @ LotteryError::WrongOwner,
+        constraint = owner_token_account.amount == 0 @ LotteryError::WrongAmount,
+        constraint = owner_token_account.mint == lottery_token_account.mint.key() @ LotteryError::MismatchingMint
+    )]
+        pub owner_token_account: Box<Account<'info, TokenAccount>>,
+        #[account(mut,
+            constraint = !lottery.is_winner @ LotteryError::WinnerAlready,
+        )]
+        pub lottery: Box<Account<'info, Lottery>>,
+        #[account(mut,
+            seeds = [lottery.key().as_ref(), LOTTERY_TOKEN_ACCOUNT_SEED.as_bytes()],
+            bump
+        )]
+        pub lottery_token_account: Box<Account<'info, TokenAccount>>,
         pub token_program: Program<'info, Token>,
         pub system_program: Program<'info, System>,
     }

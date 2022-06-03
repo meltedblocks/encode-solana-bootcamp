@@ -85,7 +85,7 @@ describe("flip-for-nft", () => {
 
   it("Initialize Lottery", async () => {
     let {owner, lotteryOwner, lottery, ownerTokenMint, lotteryTokenAccount, ownerTokenAccount} =  testEnv;
-    await program.methods.initializeLottery(new anchor.BN(100), new anchor.BN(0))
+    await program.methods.initializeLottery(new anchor.BN(100))
     .accounts({
       owner: owner.publicKey,
       lotteryOwner,
@@ -139,7 +139,7 @@ describe("flip-for-nft", () => {
       [lottery.toBytes(), utils.bytes.utf8.encode("lottery-token-account")],
       program.programId
     );
-    await program.methods.initializeLottery(new anchor.BN(100), new anchor.BN(0))
+    await program.methods.initializeLottery(new anchor.BN(100))
     .accounts({
       owner: owner.publicKey,
       lotteryOwner,
@@ -171,7 +171,7 @@ describe("flip-for-nft", () => {
     let preBalanaceOwner = await provider.connection.getBalance(
       owner.publicKey
     );
-    await program.methods.playLottery(lotteryBump)
+    await program.methods.playLottery(new anchor.BN(0), lotteryBump)
     .accounts({
       player: player.publicKey,
       owner: owner.publicKey,

@@ -8,8 +8,6 @@ pub struct Lottery {
     pub amount_won: u64,
     // timestamp of lottery creation date
     pub creation_date: i64,
-    // 0 or 1 creator can bet which is winning
-    pub bet: u8,
     // NFT mint
     pub mint: Pubkey,
     // Lottery owner

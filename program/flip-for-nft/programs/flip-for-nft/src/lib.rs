@@ -22,11 +22,7 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod flip_for_nft {
     use super::*;
 
-    pub fn initialize_lottery(ctx: Context<Initialize>, amount: u64, bet: u8) -> Result<()> {
-        if bet != 0 && bet != 1 {
-            return Err(LotteryError::IncorrectBet.into());
-        }
-
+    pub fn initialize_lottery(ctx: Context<Initialize>, amount: u64) -> Result<()> {
         let lottery_owner: &mut Account<LotteryOwner> = &mut ctx.accounts.lottery_owner;
         let lottery: &mut Account<Lottery> = &mut ctx.accounts.lottery;
         lottery_owner.count += 1;
@@ -34,7 +30,6 @@ pub mod flip_for_nft {
         lottery.is_winner = false;
         lottery.creation_date = Clock::get().unwrap().unix_timestamp;
         lottery.mint = ctx.accounts.owner_token_mint.key();
-        lottery.bet = bet;
         lottery.owner = ctx.accounts.owner.key();
         lottery.amount_won = 0;
         let transfer_instruction = Transfer {
@@ -52,13 +47,17 @@ pub mod flip_for_nft {
         Ok(())
     }
 
-    pub fn play_lottery(ctx: Context<Play>, bump: u8) -> Result<()> {
+    pub fn play_lottery(ctx: Context<Play>, bet: u8, bump: u8) -> Result<()> {
         let lottery: &mut Account<Lottery> = &mut ctx.accounts.lottery;
+        if bet != 0 && bet != 1 {
+            return Err(LotteryError::IncorrectBet.into());
+        }
+
         let lottery_result = do_lottery();
 
         let player: &mut Signer = &mut ctx.accounts.player;
 
-        if lottery_result == lottery.bet {
+        if lottery_result != bet {
             msg!("You loose");
             lottery.amount_won += lottery.amount;
             let ix = anchor_lang::solana_program::system_instruction::transfer(

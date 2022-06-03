@@ -1,13 +1,13 @@
 [features]
 seeds = false
-[programs.localnet]
+[programs.devnet]
 flip_for_nft = "ETfjkW6wW54zjVwtXvdivXehgJMKMS8CTan8PcFnvsXa"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/my-solana-wallet/my-keypair.json"
 
 [scripts]

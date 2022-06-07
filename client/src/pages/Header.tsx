@@ -1,7 +1,7 @@
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
-import { WalletAdapterNetwork, WalletError } from "@solana/wallet-adapter-base";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
     GlowWalletAdapter,
     PhantomWalletAdapter,
@@ -10,10 +10,9 @@ import {
     TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import TokenOutlinedIcon from "@mui/icons-material/TokenOutlined";
-import React, { FC, ReactNode, useCallback, useMemo } from "react";
+import React, { FC, ReactNode, useMemo } from "react";
 import { Box, Toolbar, Typography } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
-import { useSnackbar } from "notistack";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -32,18 +31,10 @@ export const Header: FC<{ children: ReactNode }> = ({ children }) => {
         ],
         []
     );
-    const { enqueueSnackbar } = useSnackbar();
-    const onError = useCallback(
-        (error: WalletError) => {
-            enqueueSnackbar(error.message ? `${error.name}: ${error.message}` : error.name, { variant: 'error' });
-            console.error(error);
-        },
-        [enqueueSnackbar]
-    );    
 
     return (
         <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} onError={onError} autoConnect>
+          <WalletProvider wallets={wallets} autoConnect>
             <div>
               <WalletModalProvider>
               <Box sx={{ flexGrow: 1 }}>

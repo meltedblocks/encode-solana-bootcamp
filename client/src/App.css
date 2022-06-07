@@ -1,11 +1,11 @@
 .App {
-  min-height: 100vh;
-  display: flex;
+  min-height: 100vh;  
   justify-content: center;
-  align-items: center;
-  text-align: center;
+  align-items: center;  
   flex-direction: column;  
   color: white;
+  /* text-align: center; */
+  /* display: flex; */
   /* font-size: calc(10px + 2vmin); */
 }
 

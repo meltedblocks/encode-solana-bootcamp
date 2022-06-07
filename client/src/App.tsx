@@ -1,71 +1,67 @@
-import logo from "./logo.svg";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { WalletModalProvider, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { ConnectionProvider, WalletProvider, useAnchorWallet } from "@solana/wallet-adapter-react";
-import {
-    GlowWalletAdapter,
-    PhantomWalletAdapter,
-    SlopeWalletAdapter,
-    SolflareWalletAdapter,
-    TorusWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
-import { clusterApiUrl } from "@solana/web3.js";
-import React, { FC, ReactNode, useMemo } from "react";
-import { Transactions } from "./Transactions";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import React, { FC } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import TokenOutlinedIcon from "@mui/icons-material/TokenOutlined";
+import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined';
+import { IconButton } from "@mui/material";
+import { Link } from "react-router-dom";
 
 require("./App.css");
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const network = WalletAdapterNetwork.Devnet;
+const iconButtonLabel = {
+  display: "flex",
+  flexDirection: "column",
+  m: "100px"
+}
 
 const App: FC = () => {
+
     return (
-        <Context>
-            <Content />
-        </Context>
+      <Content />
     );
 };
 export default App;
 
-const Context: FC<{ children: ReactNode }> = ({ children }) => {
-    const endpoint = useMemo(() => clusterApiUrl(network), []);
-    const wallets = useMemo(
-        () => [
-          new PhantomWalletAdapter(),
-          new GlowWalletAdapter(),
-          new SlopeWalletAdapter(),
-          new SolflareWalletAdapter({ network }),
-          new TorusWalletAdapter(),
-        ],
-        []
-      );
-
-      return (
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect>      
-            <div className="App">
-                {children}
-                <img src={logo} className="App-logo" alt="logo" />
-            </div>
-          </WalletProvider>
-        </ConnectionProvider>
-      );
-};
-
-const Content: FC = () => {    
-    const wallet = useAnchorWallet();
-    const ownerAccount = wallet?.publicKey;  
+const Content: FC = () => {
+  const wallet = useAnchorWallet();
 
     return (
         <>
-            {(wallet &&
-                <p>Your wallet is {ownerAccount?.toString()}</p>) ||
-                (<p>Click the button to connect</p>)
-            }
-            <WalletModalProvider>
-                <WalletMultiButton />
-                <Transactions />
-            </WalletModalProvider>
+          {(wallet && 
+            <div>
+                <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                minHeight="70vh">
+                <IconButton component={Link} to="/create" color="info" sx={iconButtonLabel} >
+                <TokenOutlinedIcon sx={{ fontSize: "150px"}} />
+                <div>
+                  Create NFT Lottery
+                </div>
+                </IconButton>
+
+                <IconButton component={Link} to="/play" color="info" sx={iconButtonLabel} >
+                <CurrencyExchangeOutlinedIcon sx={{ fontSize: "150px" }} />
+                <div>
+                  Play NFT Lottery
+                </div>
+                </IconButton>
+                </Box>
+            </div>) ||
+            (
+              <Box
+              display="flex"
+              alignItems="center"
+              textAlign="center"
+              color="#ffffff"
+              minHeight="50vh">
+              <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>Please connect wallet</Typography>
+              </Box>
+            )
+            }        
         </>
     );
 };

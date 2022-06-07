@@ -2,14 +2,40 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
+import { Create } from './pages/Create';
+import { Play } from './pages/Play';
+import { Header } from './pages/Header';
+import { createTheme, ThemeProvider } from "@mui/material";
+import { SnackbarProvider } from "notistack";
+
+const theme = createTheme({
+  palette: {
+      primary: {
+          main: "#2b2b2b"
+      }          
+    }
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+  <Router>
+  <ThemeProvider theme={theme}>
+  <SnackbarProvider>
+  <Header>
+  <Routes>
+    <Route path="/" element={<App />} />
+    <Route path="/create" element={<Create />} />
+    <Route path="/play" element={<Play />} />
+    </Routes>    
+  </Header>
+  </SnackbarProvider>
+  </ThemeProvider>
+  </Router>
   </React.StrictMode>
 );
 
